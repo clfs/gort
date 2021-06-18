@@ -8,6 +8,8 @@ import (
 	"log"
 	"math"
 	"os"
+
+	"github.com/cheggaaa/pb/v3"
 )
 
 const (
@@ -41,9 +43,12 @@ func main() {
 	img := image.NewRGBA(image.Rectangle{topLeft, bottomRight})
 	bounds := img.Bounds()
 
+	bar := pb.StartNew(bounds.Max.Y)
+
 	// Looping over Y first and X second is more likely to result in better memory access patterns than X first and Y
 	// second.
 	for y := bounds.Min.Y; y < bounds.Max.Y; y++ {
+		bar.Increment()
 		for x := bounds.Min.X; x < bounds.Max.X; x++ {
 			var (
 				r = float64(x) / float64(bounds.Max.X-1)
@@ -62,4 +67,6 @@ func main() {
 	if err := png.Encode(f, img); err != nil {
 		log.Fatal(err)
 	}
+
+	bar.Finish()
 }
