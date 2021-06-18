@@ -16,6 +16,8 @@ const (
 )
 
 func main() {
+	log.SetFlags(0)
+
 	var outputFlag string
 
 	flag.StringVar(&outputFlag, "o", "render.png", "the file to output to")
@@ -48,7 +50,12 @@ func main() {
 				g = 1 - float64(y)/float64(bounds.Max.Y-1)
 				b = 0.25
 			)
-			img.Set(x, y, color.RGBA{uint8(r * 255), uint8(g * 255), uint8(b * 255), math.MaxUint8})
+			img.Set(x, y, color.RGBA{
+				uint8(r * math.MaxUint8),
+				uint8(g * math.MaxUint8),
+				uint8(b * math.MaxUint8),
+				math.MaxUint8,
+			})
 		}
 	}
 

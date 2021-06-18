@@ -1,0 +1,41 @@
+linters:
+  disable-all: true
+  enable:
+    - deadcode
+    - errcheck
+    - gosimple
+    - govet
+    - ineffassign
+    - typecheck
+    - varcheck
+    - structcheck
+    - asciicheck
+    - errorlint
+    - exhaustive
+    - exportloopref
+    - goconst
+    - godot
+    - goerr113
+    - gomnd
+    - goprintffuncname
+    - lll
+    - makezero
+    - misspell
+    - nilerr
+    - paralleltest
+    - prealloc
+    - predeclared
+    - revive
+    - thelper
+    - tparallel
+    - unconvert
+    - unparam
+    - wastedassign
+    - whitespace
+    - wrapcheck
+
+linters-settings:
+  govet:
+    check-shadowing: true
+    enable:
+      - fieldalignment
