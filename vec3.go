@@ -9,14 +9,6 @@ type Vec3 struct {
 	X, Y, Z float64
 }
 
-// Set sets v to a and returns v.
-func (v *Vec3) Set(a *Vec3) *Vec3 {
-	v.X = a.X
-	v.Y = a.Y
-	v.Z = a.Z
-	return v
-}
-
 // Rand sets v to a random vector and returns v.
 func (v *Vec3) Rand() *Vec3 {
 	v.X = rand.Float64()
