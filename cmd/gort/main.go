@@ -38,11 +38,24 @@ var (
 )
 
 func rayColor(r *gort.Ray) *gort.Vec3 {
+	if hitSphere(&gort.Vec3{X: 0, Y: 0, Z: 1}, 0.5, r) {
+		return &gort.Vec3{X: 1, Y: 0, Z: 0}
+	}
 	unit := r.Direction.Unit()
 	t := 0.5 * (unit.Y + 1)
 	tmp1 := &gort.Vec3{X: 1, Y: 1, Z: 1}
 	tmp2 := &gort.Vec3{X: 0.5, Y: 0.7, Z: 1}
 	return tmp1.Add(tmp1.Mul(tmp1, t), tmp2.Mul(tmp2, 1-t))
+}
+
+func hitSphere(center *gort.Vec3, radius float64, ray *gort.Ray) bool {
+	var (
+		oc = new(gort.Vec3).Sub(ray.Origin, center)
+		a  = ray.Direction.Dot(ray.Direction)
+		b  = 2 * oc.Dot(ray.Direction)
+		c  = oc.Dot(oc) - radius*radius
+	)
+	return b*b-4*a*c > 0
 }
 
 func main() {
