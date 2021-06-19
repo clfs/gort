@@ -16,7 +16,6 @@ linters:
     - goconst
     - godot
     - goerr113
-    - gomnd
     - goprintffuncname
     - lll
     - makezero

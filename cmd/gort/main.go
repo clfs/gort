@@ -10,12 +10,40 @@ import (
 	"os"
 
 	"github.com/cheggaaa/pb/v3"
+	"github.com/clfs/gort"
 )
 
 const (
-	imageWidth  = 256
-	imageHeight = 256
+	// Image.
+	aspectRatio = 16. / 9
+	imageWidth  = 400
+	imageHeight = int(imageWidth / aspectRatio)
+
+	// Camera.
+	viewportHeight = 2
+	viewportWidth  = aspectRatio * viewportHeight
+	focalLength    = 1
 )
+
+var (
+	// Camera.
+	origin        = &gort.Vec3{X: 0, Y: 0, Z: 0}
+	horizontal    = &gort.Vec3{X: viewportWidth, Y: 0, Z: 0}
+	vertical      = &gort.Vec3{X: 0, Y: viewportHeight, Z: 0}
+	topLeftCorner = &gort.Vec3{
+		X: -viewportWidth / 2,
+		Y: -viewportHeight / 2,
+		Z: focalLength,
+	}
+)
+
+func rayColor(r *gort.Ray) *gort.Vec3 {
+	unit := r.Direction.Unit()
+	t := 0.5 * (unit.Y + 1)
+	tmp1 := &gort.Vec3{X: 1, Y: 1, Z: 1}
+	tmp2 := &gort.Vec3{X: 0.5, Y: 0.7, Z: 1}
+	return tmp1.Add(tmp1.Mul(tmp1, t), tmp2.Mul(tmp2, 1-t))
+}
 
 func main() {
 	log.SetFlags(0)
@@ -51,16 +79,24 @@ func main() {
 		bar.Increment()
 		for x := bounds.Min.X; x < bounds.Max.X; x++ {
 			var (
-				r = float64(x) / float64(bounds.Max.X-1)
-				g = 1 - float64(y)/float64(bounds.Max.Y-1)
-				b = 0.25
+				u = float64(x) / float64(bounds.Max.X-1)
+				v = float64(y) / float64(bounds.Max.Y-1)
+
+				r          gort.Ray
+				tmp1, tmp2 gort.Vec3
+				c          = &color.RGBA{A: math.MaxUint8}
 			)
-			img.Set(x, y, color.RGBA{
-				uint8(r * math.MaxUint8),
-				uint8(g * math.MaxUint8),
-				uint8(b * math.MaxUint8),
-				math.MaxUint8,
-			})
+
+			tmp2.Mul(horizontal, u)
+			tmp1.Add(topLeftCorner, &tmp2)
+			tmp2.Mul(vertical, v)
+			tmp1.Add(&tmp1, &tmp2)
+			tmp1.Sub(&tmp1, origin)
+
+			r.Origin = origin
+			r.Direction = &tmp1
+
+			img.Set(x, y, rayColor(&r).Color(c))
 		}
 	}
 

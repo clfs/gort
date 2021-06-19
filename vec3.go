@@ -1,12 +1,21 @@
 package gort
 
 import (
+	"image/color"
 	"math"
 	"math/rand"
 )
 
 type Vec3 struct {
 	X, Y, Z float64
+}
+
+// Set copies a's values to v and returns v.
+func (v *Vec3) Set(a *Vec3) *Vec3 {
+	v.X = a.X
+	v.Y = a.Y
+	v.Z = a.Z
+	return v
 }
 
 // Rand sets v to a random vector and returns v.
@@ -78,4 +87,15 @@ func (v *Vec3) Cross(a *Vec3, b *Vec3) *Vec3 {
 // Unit sets v to the unit vector in the direction of v and returns v.
 func (v *Vec3) Unit() *Vec3 {
 	return v.Div(v, v.Mag())
+}
+
+// Color maps the XYZ coordinates of v onto the RGB channels of dst,
+// then returns dst. The alpha channel isn't updated.
+func (v *Vec3) Color(dst *color.RGBA) *color.RGBA {
+	// [0.0, 1.0] is mapped to [0, 255].
+	// Both underflow and overflow can potentially occur.
+	dst.R = uint8(v.X * math.MaxUint8)
+	dst.G = uint8(v.Y * math.MaxUint8)
+	dst.B = uint8(v.Z * math.MaxUint8)
+	return dst
 }
