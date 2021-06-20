@@ -39,24 +39,42 @@ var (
 )
 
 func rayColor(r *gort.Ray) *gort.Vec3 {
-	if hitSphere(&gort.Vec3{X: 0, Y: 0, Z: 1}, 0.5, r) {
-		return &gort.Vec3{X: 1, Y: 0, Z: 0}
+	var (
+		tmp1 = gort.NewVec3(0, 0, -1)
+		tmp2 = gort.NewVec3(1, 1, 1)
+	)
+
+	t := hitSphere(tmp1, 0.5, r)
+	if t > 0 {
+		tmp3 := new(gort.Vec3)
+		r.At(t, tmp3)
+		tmp3.Sub(tmp3, tmp1)
+		tmp3.Unit()
+		tmp3.Add(tmp3, tmp2)
+		return tmp3.Mul(tmp3, 0.5)
 	}
-	unit := r.Direction.Unit()
-	t := 0.5 * (unit.Y + 1)
-	tmp1 := &gort.Vec3{X: 1, Y: 1, Z: 1}
-	tmp2 := &gort.Vec3{X: 0.5, Y: 0.7, Z: 1}
-	return tmp1.Add(tmp1.Mul(tmp1, t), tmp2.Mul(tmp2, 1-t))
+
+	tmp1.Set(r.Direction)
+	tmp1.Unit()
+	t = 0.5 * (tmp1.Y + 1)
+	tmp2.Mul(tmp2, t)
+	tmp1.Set3(0.5, 0.7, 1)
+	tmp1.Mul(tmp1, 1-t)
+	return tmp1.Add(tmp1, tmp2)
 }
 
-func hitSphere(center *gort.Vec3, radius float64, ray *gort.Ray) bool {
+func hitSphere(center *gort.Vec3, radius float64, ray *gort.Ray) float64 {
 	var (
 		oc = new(gort.Vec3).Sub(ray.Origin, center)
 		a  = ray.Direction.Dot(ray.Direction)
 		b  = 2 * oc.Dot(ray.Direction)
 		c  = oc.Dot(oc) - radius*radius
 	)
-	return b*b-4*a*c > 0
+	discriminant := b*b - 4*a*c
+	if discriminant > 0 {
+		return -1
+	}
+	return (-b - math.Sqrt(discriminant)) / (2 * a)
 }
 
 func main() {

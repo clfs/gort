@@ -10,11 +10,24 @@ type Vec3 struct {
 	X, Y, Z float64
 }
 
-// Set copies a's values to v and returns v.
+// NewVec3 returns a new *Vec3.
+func NewVec3(x, y, z float64) *Vec3 {
+	return &Vec3{X: x, Y: y, Z: z}
+}
+
+// Set sets v's values to a's values and returns v.
 func (v *Vec3) Set(a *Vec3) *Vec3 {
 	v.X = a.X
 	v.Y = a.Y
 	v.Z = a.Z
+	return v
+}
+
+// Set3 sets v's values and returns v.
+func (v *Vec3) Set3(x, y, z float64) *Vec3 {
+	v.X = x
+	v.Y = y
+	v.Z = z
 	return v
 }
 
@@ -58,6 +71,14 @@ func (v *Vec3) Div(a *Vec3, b float64) *Vec3 {
 	return v
 }
 
+// Scale scales v by f and returns v.
+func (v *Vec3) Scale(f float64) *Vec3 {
+	v.X *= f
+	v.Y *= f
+	v.Z *= f
+	return v
+}
+
 // Mag returns the magnitude of v.
 func (v *Vec3) Mag() float64 {
 	return math.Sqrt(v.MagSquared())
@@ -82,6 +103,14 @@ func (v *Vec3) Cross(a *Vec3, b *Vec3) *Vec3 {
 	v.Y = vY
 	v.Z = vZ
 	return v
+}
+
+func Cross2(a, b Vec3) Vec3 {
+	return Vec3{
+		X: a.Y*b.Z - a.Z*b.Y,
+		Y: a.Z*b.X - a.X*b.Z,
+		Z: a.X*b.Y - a.Y*b.X,
+	}
 }
 
 // Unit sets v to the unit vector in the direction of v and returns v.

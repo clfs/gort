@@ -42,9 +42,9 @@ func TestVec3_Cross_Aliased(t *testing.T) {
 func BenchmarkVec3_Cross(b *testing.B) {
 	b.ReportAllocs()
 	var (
-		r = new(Vec3).Rand()
-		s = new(Vec3).Rand()
-		t = new(Vec3).Rand()
+		r = new(Vec3)
+		s = &Vec3{4, 5, 6}
+		t = &Vec3{7, 8, 9}
 	)
 	for i := 0; i < b.N; i++ {
 		r.Cross(s, t)
