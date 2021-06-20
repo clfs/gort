@@ -11,7 +11,7 @@ import (
 
 	"github.com/cheggaaa/pb/v3"
 
-	"github.com/clfs/gort"
+	"github.com/clfs/gort/r3"
 )
 
 const (
@@ -28,53 +28,42 @@ const (
 
 var (
 	// Camera.
-	origin        = &gort.Vec3{X: 0, Y: 0, Z: 0}
-	horizontal    = &gort.Vec3{X: viewportWidth, Y: 0, Z: 0}
-	vertical      = &gort.Vec3{X: 0, Y: viewportHeight, Z: 0}
-	topLeftCorner = &gort.Vec3{
-		X: -viewportWidth / 2,
-		Y: -viewportHeight / 2,
-		Z: focalLength,
-	}
+	origin        = r3.NewVec(0, 0, 0)
+	horizontal    = r3.NewVec(viewportWidth, 0, 0)
+	vertical      = r3.NewVec(0, viewportHeight, 0)
+	topLeftCorner = r3.NewVec(-viewportWidth/2, -viewportHeight/2, focalLength)
 )
 
-func rayColor(r *gort.Ray) *gort.Vec3 {
-	var (
-		tmp1 = gort.NewVec3(0, 0, -1)
-		tmp2 = gort.NewVec3(1, 1, 1)
-	)
-
-	t := hitSphere(tmp1, 0.5, r)
+func rayColor(r r3.Ray) color.RGBA {
+	t := hitSphere(r3.NewVec(0, 0, 1), 0.5, r)
 	if t > 0 {
-		tmp3 := new(gort.Vec3)
-		r.At(t, tmp3)
-		tmp3.Sub(tmp3, tmp1)
-		tmp3.Unit()
-		tmp3.Add(tmp3, tmp2)
-		return tmp3.Mul(tmp3, 0.5)
+		n := r3.Sub(r3.At(r, t), r3.NewVec(0, 0, 1))
+		return r3.Scale(
+			r3.Add(n, r3.NewVec(1, 1, 1)),
+			0.5,
+		).Color()
 	}
 
-	tmp1.Set(r.Direction)
-	tmp1.Unit()
-	t = 0.5 * (tmp1.Y + 1)
-	tmp2.Mul(tmp2, t)
-	tmp1.Set3(0.5, 0.7, 1)
-	tmp1.Mul(tmp1, 1-t)
-	return tmp1.Add(tmp1, tmp2)
+	// If the sphere wasn't hit.
+	t = 0.5 * (r3.Unit(r.Direction).Y + 1)
+	return r3.Add(
+		r3.Scale(r3.NewVec(1, 1, 1), t),
+		r3.Scale(r3.NewVec(.5, .7, 1), 1-t),
+	).Color()
 }
 
-func hitSphere(center *gort.Vec3, radius float64, ray *gort.Ray) float64 {
+func hitSphere(center r3.Vec, radius float64, r r3.Ray) float64 {
 	var (
-		oc = new(gort.Vec3).Sub(ray.Origin, center)
-		a  = ray.Direction.Dot(ray.Direction)
-		b  = 2 * oc.Dot(ray.Direction)
-		c  = oc.Dot(oc) - radius*radius
+		oc    = r3.Sub(r.Origin, center)
+		a     = r3.Mag2(r.Direction)
+		halfB = r3.Dot(oc, r.Direction)
+		c     = r3.Mag2(oc) - radius*radius
 	)
-	discriminant := b*b - 4*a*c
-	if discriminant > 0 {
+	discriminant := halfB*halfB - a*c
+	if discriminant < 0 {
 		return -1
 	}
-	return (-b - math.Sqrt(discriminant)) / (2 * a)
+	return (-halfB - math.Sqrt(discriminant)) / a
 }
 
 func main() {
@@ -110,25 +99,21 @@ func main() {
 	for y := bounds.Min.Y; y < bounds.Max.Y; y++ {
 		bar.Increment()
 		for x := bounds.Min.X; x < bounds.Max.X; x++ {
-			var (
-				u = float64(x) / float64(bounds.Max.X-1)
-				v = float64(y) / float64(bounds.Max.Y-1)
-
-				r          gort.Ray
-				tmp1, tmp2 gort.Vec3
-				c          = &color.RGBA{A: math.MaxUint8}
-			)
-
-			tmp2.Mul(horizontal, u)
-			tmp1.Add(topLeftCorner, &tmp2)
-			tmp2.Mul(vertical, v)
-			tmp1.Add(&tmp1, &tmp2)
-			tmp1.Sub(&tmp1, origin)
-
-			r.Origin = origin
-			r.Direction = &tmp1
-
-			img.Set(x, y, rayColor(&r).Color(c))
+			u := float64(x) / float64(bounds.Max.X)
+			v := float64(y) / float64(bounds.Max.Y)
+			r := r3.Ray{
+				Origin: origin,
+				Direction: r3.Add(
+					topLeftCorner,
+					r3.Add(
+						r3.Scale(horizontal, u),
+						r3.Sub(
+							r3.Scale(vertical, v),
+							origin,
+						),
+					)),
+			}
+			img.Set(x, y, rayColor(r))
 		}
 	}
 
